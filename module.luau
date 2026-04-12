@@ -1,5 +1,4 @@
 -- Synchronization Interface --
-
 cloneref = cloneref or function(f) return f; end;
 
 local SyncManager = {};
@@ -42,7 +41,7 @@ function SyncManager:_LoadPlayerList()
 	end;
 end;
 
-SyncManager.Clear = IB_NO_VIRTUALIZE(function()
+SyncManager.Clear = (function()
     local PlayerList: ScreenGui = CoreGui:FindFirstChild("PlayerList");
 
     for i,v in next , PlayerList:GetDescendants() do
