@@ -1,11 +1,3 @@
---[[
-                          Neverlose.cc UI Library
-    Author: 4lpaca
-	License: MIT
-    Discord: https://arceney.win/discord
-    Other-Projects: https://4lpaca.win
-]]
-
 do
 	local Constant = 'L'..'P'..'H'..'_NO_VIRTUALIZE';
 	getfenv()[Constant] = getfenv()[Constant] or function(f) return f end;
@@ -207,7 +199,7 @@ NeverLose.GlobalLogo = "rbxassetid://120358385035996";
 NeverLose.ImageColorMapping = "rbxassetid://4155801252";
 
 if getcustomasset then
-	local link = "https://github.com/4lpaca-pin/NeverLose/blob/main/assets/%s?raw=true";
+	local link = "https://github.com/San1na/NL/blob/main/assets/%s?raw=true";
 	local dir = 'NLAssets';
 
 	if not isfolder(dir) then
@@ -1424,7 +1416,7 @@ function NeverLose:CreateColorPicker(HandleFrame: Frame)
 	SaViMap.Position = UDim2.new(0.5, 0, 0, 5)
 	SaViMap.Size = UDim2.new(0, 185, 0, 185)
 	SaViMap.ZIndex = ZIndex + 126
-	SaViMap.Image = NeverLose.ImageColorMapping -- UNSAFE IMAGE
+	SaViMap.Image = NeverLose.ImageColorMapping -1256, 216, -1241 UNSAFE IMAGE
 
 	UICorner_2.CornerRadius = UDim.new(0, 5)
 	UICorner_2.Parent = SaViMap
@@ -3695,6 +3687,651 @@ function NeverLose:RegisiterItem(Frame: Frame , Signel)
 		Signel:Connect(Button.SetRender);
 
 		return Button;
+	end;
+
+	-1256, 216, -1241 ============================================================
+	-1256, 216, -1241 AddESPPreview: an interactive ESP layout preview with a
+	-1256, 216, -1241 viewport character, draggable labels and a Box / BoxFill /
+	-1256, 216, -1241 BoxOutline rectangle. Styled to match NeverLose sections.
+	-1256, 216, -1241 ============================================================
+	function idx:AddESPPreview(Config)
+		Config = NeverLose:ProcessParams(Config , {
+			Height = 220,
+			Elements = {
+				{ Idx = "Name",       Text = "Player",  DefaultX = 0.5,  DefaultY = -0.10 },
+				{ Idx = "Weapon",     Text = "AK-47",   DefaultX = 0.5,  DefaultY = 1.05  },
+				{ Idx = "WeaponIcon", Text = "[Icon]",  DefaultX = 0.5,  DefaultY = 1.20  },
+				{ Idx = "Distance",   Text = "24m",     DefaultX = 0.5,  DefaultY = 1.31  },
+				{ Idx = "Flags",      Text = "ZOOM",    DefaultX = 1.15, DefaultY = 0.0   },
+			},
+			Flag = nil,
+			Callback = EmptyFunction,
+		});
+
+		local Preview = {
+			Type     = "ESPPreview",
+			Value    = {},
+			Default  = {},
+			Elements = Config.Elements,
+			Visible  = true,
+			Labels   = {},
+		};
+
+		for _, El in next, Config.Elements do
+			Preview.Default[El.Idx] = { X = El.DefaultX, Y = El.DefaultY };
+			Preview.Value[El.Idx]   = { X = El.DefaultX, Y = El.DefaultY };
+		end;
+
+		-1256, 216, -1241 Outer holder fits the section UIListLayout
+		local PreviewFrame = Instance.new("Frame")
+		PreviewFrame.Name = NeverLose.RandomString();
+		PreviewFrame.Parent = Frame
+		PreviewFrame.BackgroundColor3 = Color3.fromRGB(25, 27, 33)
+		PreviewFrame.BackgroundTransparency = 1.000
+		PreviewFrame.BorderSizePixel = 0
+		PreviewFrame.Size = UDim2.new(1, -10, 0, Config.Height)
+		PreviewFrame.ZIndex = LayerIndex + 8
+
+		-1256, 216, -1241 Inner canvas (where labels and box live)
+		local Canvas = Instance.new("Frame")
+		Canvas.Name = NeverLose.RandomString();
+		Canvas.Parent = PreviewFrame
+		Canvas.AnchorPoint = Vector2.new(0.5, 0.5)
+		Canvas.Position = UDim2.new(0.5, 0, 0.5, 0)
+		Canvas.Size = UDim2.new(1, -10, 1, -10)
+		Canvas.BackgroundColor3 = Color3.fromRGB(20, 22, 27)
+		Canvas.BackgroundTransparency = 0.250
+		Canvas.BorderSizePixel = 0
+		Canvas.ClipsDescendants = false
+		Canvas.ZIndex = LayerIndex + 9
+
+		local CanvasCorner = Instance.new("UICorner")
+		CanvasCorner.CornerRadius = UDim.new(0, 8)
+		CanvasCorner.Parent = Canvas
+
+		local CanvasStroke = Instance.new("UIStroke")
+		CanvasStroke.Color = Color3.fromRGB(45, 48, 58)
+		CanvasStroke.Transparency = 0.65
+		CanvasStroke.Parent = Canvas
+
+		-1256, 216, -1241 Soft inner glow / gradient backdrop
+		local CanvasGradient = Instance.new("UIGradient")
+		CanvasGradient.Rotation = 90
+		CanvasGradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(28, 30, 38)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(18, 20, 26)),
+		})
+		CanvasGradient.Parent = Canvas
+
+		local function GetBoxRect()
+			local cw = math.max(Canvas.AbsoluteSize.X, 1);
+			local ch = math.max(Canvas.AbsoluteSize.Y, 1);
+			local bh = math.clamp(ch * 0.46, 75, 115);
+			local bw = math.clamp(math.floor(bh * 0.833), 60, 100);
+			local bx = (cw - bw) / 2;
+			local by = (ch - bh) / 2;
+			return bx, by, bw, bh;
+		end;
+
+		-1256, 216, -1241 Box outline (black border around the white box)
+		local BoxOutlineFrame = Instance.new("Frame")
+		BoxOutlineFrame.Name = "BoxOutline";
+		BoxOutlineFrame.BackgroundTransparency = 1
+		BoxOutlineFrame.BorderSizePixel = 0
+		BoxOutlineFrame.ZIndex = LayerIndex + 11
+		BoxOutlineFrame.Parent = Canvas
+		local BoxOutlineStroke = Instance.new("UIStroke")
+		BoxOutlineStroke.Color = Color3.new(0, 0, 0)
+		BoxOutlineStroke.Thickness = 1
+		BoxOutlineStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		BoxOutlineStroke.LineJoinMode = Enum.LineJoinMode.Miter
+		BoxOutlineStroke.Parent = BoxOutlineFrame
+
+		-1256, 216, -1241 Box fill
+		local BoxFillFrame = Instance.new("Frame")
+		BoxFillFrame.Name = "BoxFill";
+		BoxFillFrame.BackgroundColor3 = Color3.fromRGB(255, 88, 88)
+		BoxFillFrame.BackgroundTransparency = 0.85
+		BoxFillFrame.BorderSizePixel = 0
+		BoxFillFrame.ZIndex = LayerIndex + 12
+		BoxFillFrame.Parent = Canvas
+		local BoxFillGradient = Instance.new("UIGradient")
+		BoxFillGradient.Rotation = 90
+		BoxFillGradient.Enabled = false
+		BoxFillGradient.Parent = BoxFillFrame
+
+		-1256, 216, -1241 Box (white border)
+		local BoxFrame = Instance.new("Frame")
+		BoxFrame.Name = "Box";
+		BoxFrame.BackgroundTransparency = 1
+		BoxFrame.BorderSizePixel = 0
+		BoxFrame.ZIndex = LayerIndex + 13
+		BoxFrame.ClipsDescendants = false
+		BoxFrame.Parent = Canvas
+		local BoxStroke = Instance.new("UIStroke")
+		BoxStroke.Color = Color3.new(1, 1, 1)
+		BoxStroke.Thickness = 1
+		BoxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		BoxStroke.LineJoinMode = Enum.LineJoinMode.Miter
+		BoxStroke.Parent = BoxFrame
+		local BoxGradient = Instance.new("UIGradient")
+		BoxGradient.Rotation = 90
+		BoxGradient.Enabled = false
+		BoxGradient.Parent = BoxStroke
+
+		-1256, 216, -1241 Character viewport
+		local CharViewport = Instance.new("ViewportFrame")
+		CharViewport.Name = "CharViewport";
+		CharViewport.BackgroundTransparency = 1
+		CharViewport.BorderSizePixel = 0
+		CharViewport.Size = UDim2.fromScale(2, 2)
+		CharViewport.Position = UDim2.fromScale(-0.5, -0.5)
+		CharViewport.ZIndex = LayerIndex + 12
+		CharViewport.LightDirection = Vector3.new(0.3, -0.8, -0.5)
+		CharViewport.Ambient = Color3.fromRGB(160, 160, 170)
+		CharViewport.LightColor = Color3.fromRGB(255, 252, 240)
+		CharViewport.Parent = BoxFrame
+
+		local function BuildFallbackDummy()
+			local model = Instance.new("Model");
+			model.Name = "PreviewDummy";
+			local function mkPart(name, size, color, cf)
+				local p = Instance.new("Part");
+				p.Name, p.Size, p.Color = name, size, color;
+				p.Anchored, p.CanCollide = true, false;
+				p.Material = Enum.Material.SmoothPlastic;
+				p.TopSurface = Enum.SurfaceType.Smooth;
+				p.BottomSurface = Enum.SurfaceType.Smooth;
+				p.CFrame = cf;
+				p.Parent = model;
+				return p;
+			end;
+			local skin  = Color3.fromRGB(255, 226, 117);
+			local shirt = Color3.fromRGB(45, 80, 170);
+			local pants = Color3.fromRGB(30, 30, 40);
+			mkPart("Torso",    Vector3.new(2, 2, 1),       shirt, CFrame.new(0, 3, 0))
+			local head = mkPart("Head", Vector3.new(1.2, 1.2, 1.2), skin, CFrame.new(0, 4.6, 0));
+			local face = Instance.new("Decal");
+			face.Texture = "rbxasset://textures/face.png";
+			face.Face = Enum.NormalId.Front;
+			face.Parent = head;
+			mkPart("LeftArm",  Vector3.new(1, 2, 1), skin,  CFrame.new(-1.5, 3, 0))
+			mkPart("RightArm", Vector3.new(1, 2, 1), skin,  CFrame.new(1.5, 3, 0))
+			mkPart("LeftLeg",  Vector3.new(1, 2, 1), pants, CFrame.new(-0.5, 1, 0))
+			mkPart("RightLeg", Vector3.new(1, 2, 1), pants, CFrame.new(0.5, 1, 0))
+			return model;
+		end;
+
+		local function TryGetGameCharacter()
+			local model = nil;
+			pcall(function()
+				local RS = game:GetService("ReplicatedStorage");
+				local ok, viewCfg = pcall(require, RS:FindFirstChild("Database")
+					and RS.Database:FindFirstChild("Custom")
+					and RS.Database.Custom:FindFirstChild("GameStats")
+					and RS.Database.Custom.GameStats:FindFirstChild("Character")
+					and RS.Database.Custom.GameStats.Character:FindFirstChild("Viewport"));
+				if ok and viewCfg then
+					local tConf = viewCfg.VIEWPORT_CHARACTER_CONFIG
+								and viewCfg.VIEWPORT_CHARACTER_CONFIG["T"];
+					if tConf and tConf.Character then
+						local src = RS.Assets.Characters:FindFirstChild(tConf.Character);
+						if src then model = src:Clone(); return end;
+					end;
+				end;
+				local chars = RS:FindFirstChild("Assets") and RS.Assets:FindFirstChild("Characters");
+				if chars then
+					for _, ch in next, chars:GetChildren() do
+						if ch:IsA("Model") and not ch.Name:lower():find("ct") then
+							model = ch:Clone(); return;
+						end;
+					end;
+					local first = chars:GetChildren()[1];
+					if first and first:IsA("Model") then model = first:Clone() end;
+				end;
+			end);
+			return model;
+		end;
+
+		local CharWorldModel = Instance.new("WorldModel");
+		CharWorldModel.Parent = CharViewport;
+		local CharModel = TryGetGameCharacter() or BuildFallbackDummy();
+		local UsingRealModel = CharModel.Name ~= "PreviewDummy";
+		CharModel.Parent = CharWorldModel;
+
+		local function AnchorRootOnly(model)
+			local root = model.PrimaryPart
+				or model:FindFirstChild("HumanoidRootPart")
+				or model:FindFirstChild("Torso")
+				or model:FindFirstChild("UpperTorso");
+			for _, desc in next, model:GetDescendants() do
+				if desc:IsA("BasePart") then
+					desc.Anchored   = (desc == root);
+					desc.CanCollide = false;
+					desc.CanQuery   = false;
+					desc.CanTouch   = false;
+					desc.Massless   = true;
+				end;
+			end;
+			if root and not model.PrimaryPart then model.PrimaryPart = root end;
+			return root;
+		end;
+
+		local function AnchorAllParts(model)
+			for _, desc in next, model:GetDescendants() do
+				if desc:IsA("BasePart") then desc.Anchored = true end;
+			end;
+		end;
+
+		if UsingRealModel then AnchorRootOnly(CharModel) else AnchorAllParts(CharModel) end;
+
+		pcall(function()
+			local offset = CFrame.new(0, 0.025, 0.4);
+			if CharModel.PrimaryPart then
+				CharModel:SetPrimaryPartCFrame(offset);
+			else
+				CharModel:PivotTo(offset);
+			end;
+		end);
+
+		local function AttachAK(charModel)
+			local rs = game:GetService("ReplicatedStorage");
+			local weaponsFolder = rs:FindFirstChild("Assets") and rs.Assets:FindFirstChild("Weapons");
+			if not weaponsFolder then return nil end;
+			local akSrc = weaponsFolder:FindFirstChild("AK-47");
+			if not akSrc then return nil end;
+			local baseModel = akSrc:FindFirstChild("Character") or akSrc;
+			if not baseModel:IsA("Model") then return nil end;
+
+			local weapon = baseModel:Clone();
+			weapon.Name = "AK-47";
+
+			if not weapon.PrimaryPart then
+				local insert = weapon:FindFirstChild("Insert", true);
+				if insert and insert:IsA("BasePart") then
+					weapon.PrimaryPart = insert;
+				end;
+			end;
+			if not weapon.PrimaryPart then weapon:Destroy(); return nil end;
+
+			for _, p in next, weapon:GetDescendants() do
+				if p:IsA("BasePart") then
+					p.Anchored, p.CanCollide, p.CanQuery, p.CanTouch, p.Massless =
+						false, false, false, false, true;
+				end;
+			end;
+
+			local rightHand = charModel:FindFirstChild("RightHand");
+			if not rightHand then weapon:Destroy(); return nil end;
+			weapon.Parent = charModel;
+
+			local motor = Instance.new("Motor6D");
+			motor.Name  = "WeaponAttachment";
+			motor.Part0 = rightHand;
+			motor.Part1 = weapon.PrimaryPart;
+
+			local props = weapon:FindFirstChild("Properties");
+			if not props then
+				local sub = weapon:FindFirstChild("Weapon");
+				if sub then props = sub:FindFirstChild("Properties") end;
+			end;
+			if not props then props = weapon:FindFirstChild("Properties", true) end;
+			if props then
+				local c0 = props:FindFirstChild("C0"); if c0 then motor.C0 = c0.Value end;
+				local c1 = props:FindFirstChild("C1"); if c1 then motor.C1 = c1.Value end;
+			end;
+			motor.Parent = rightHand;
+			return weapon;
+		end;
+
+		local function PlayPreviewAnimations(charModel)
+			local hum = charModel:FindFirstChildOfClass("Humanoid");
+			if not hum then
+				hum = Instance.new("Humanoid");
+				hum.RequiresNeck = false;
+				hum.HealthDisplayDistanceType = Enum.HumanoidHealthDisplayType.AlwaysOff;
+				hum.NameDisplayDistance = 0;
+				hum.Parent = charModel;
+			end;
+			pcall(function() hum.RequiresNeck = false end);
+			pcall(function() hum.HipHeight = 0 end);
+			pcall(function() hum.AutoRotate = false end);
+			local animator = hum:FindFirstChildOfClass("Animator");
+			if not animator then animator = Instance.new("Animator"); animator.Parent = hum end;
+
+			pcall(function()
+				local idle = Instance.new("Animation");
+				idle.AnimationId = "rbxassetid://99540873384647";
+				local track = animator:LoadAnimation(idle);
+				track.Looped = true;
+				track.Priority = Enum.AnimationPriority.Idle;
+				track:Play();
+			end);
+
+			local function tryRifleAnim()
+				local rs = game:GetService("ReplicatedStorage");
+				local assets = rs:FindFirstChild("Assets");
+				local ui = assets and assets:FindFirstChild("UI");
+				local loadout = ui and ui:FindFirstChild("Loadout");
+				local anims = loadout and loadout:FindFirstChild("Animations");
+				local rifle = anims and anims:FindFirstChild("Rifle");
+				if rifle then
+					local anim = rifle:FindFirstChild("AK-47") or rifle:FindFirstChild("Default");
+					if anim and anim:IsA("Animation") then
+						local track = animator:LoadAnimation(anim);
+						track.Looped = true;
+						track.Priority = Enum.AnimationPriority.Action;
+						track:Play();
+						return true;
+					end;
+				end;
+				return false;
+			end;
+
+			task.spawn(function()
+				for _ = 1, 30 do
+					local ok, done = pcall(tryRifleAnim);
+					if ok and done then return end;
+					task.wait(0.5);
+				end;
+			end);
+		end;
+
+		if UsingRealModel then
+			task.spawn(function()
+				for _ = 1, 30 do
+					local rs = game:GetService("ReplicatedStorage");
+					local weapons = rs:FindFirstChild("Assets") and rs.Assets:FindFirstChild("Weapons");
+					local ak = weapons and weapons:FindFirstChild("AK-47");
+					if ak and ak:FindFirstChild("Character") then
+						pcall(function() AttachAK(CharModel) end);
+						break;
+					end;
+					task.wait(0.5);
+				end;
+			end);
+			pcall(function() PlayPreviewAnimations(CharModel) end);
+		end;
+
+		local PreviewCam = Instance.new("Camera");
+		PreviewCam.CameraType = Enum.CameraType.Scriptable;
+		PreviewCam.FieldOfView = 50;
+		PreviewCam.CFrame = CFrame.new(0.2, -0.35, -12) * CFrame.Angles(0, -math.pi, 0);
+		PreviewCam.Parent = CharViewport;
+		CharViewport.CurrentCamera = PreviewCam;
+
+		local function UpdateBoxLayout()
+			local bx, by, bw, bh = GetBoxRect();
+			Preview.RefW, Preview.RefH = bw, bh;
+			local ox, oy = math.floor(bx), math.floor(by);
+			local ow, oh = math.floor(bw), math.floor(bh);
+			BoxOutlineFrame.Position = UDim2.fromOffset(ox - 1, oy - 1);
+			BoxOutlineFrame.Size     = UDim2.fromOffset(ow + 2, oh + 2);
+			BoxFrame.Position        = UDim2.fromOffset(ox, oy);
+			BoxFrame.Size            = UDim2.fromOffset(ow, oh);
+			BoxFillFrame.Position    = UDim2.fromOffset(ox + 1, oy + 1);
+			BoxFillFrame.Size        = UDim2.fromOffset(math.max(ow - 2, 1), math.max(oh - 2, 1));
+		end;
+
+		local LowerOnlyLabels = { Weapon = true, Distance = true, WeaponIcon = true };
+
+		local function PositionLabel(elIdx)
+			local lbl = Preview.Labels[elIdx];
+			if not lbl then return end;
+			local v = Preview.Value[elIdx];
+			local bx, by, bw, bh = GetBoxRect();
+			local cx = bx + v.X * bw;
+			local cy = by + v.Y * bh;
+			local sz = lbl.Frame.AbsoluteSize;
+			local tw, th = sz.X, sz.Y;
+			local bL, bT, bR, bB = bx, by, bx + bw, by + bh;
+			local gap = 2;
+			local centerInsideX = cx > bL and cx < bR;
+			local centerInsideY = cy > bT and cy < bB;
+
+			if centerInsideX and centerInsideY then
+				if LowerOnlyLabels[elIdx] then
+					cy = bB + gap + th / 2;
+				elseif cy < (bT + bB) / 2 then
+					cy = bT - gap - th / 2;
+				else
+					cy = bB + gap + th / 2;
+				end;
+			elseif centerInsideX then
+				if cy <= bT and (cy + th / 2) > bT - gap then
+					cy = bT - gap - th / 2;
+				elseif cy >= bB and (cy - th / 2) < bB + gap then
+					cy = bB + gap + th / 2;
+				end;
+				if LowerOnlyLabels[elIdx] and cy < bB + gap + th / 2 then
+					cy = bB + gap + th / 2;
+				end;
+			elseif centerInsideY then
+				if cx <= bL and (cx + tw / 2) > bL - gap then
+					cx = bL - gap - tw / 2;
+				elseif cx >= bR and (cx - tw / 2) < bR + gap then
+					cx = bR + gap + tw / 2;
+				end;
+			end;
+
+			lbl.Frame.Position = UDim2.fromOffset(
+				math.floor(cx - tw / 2),
+				math.floor(cy - th / 2)
+			);
+		end;
+
+		local function IsClickInput(input)
+			return input.UserInputType == Enum.UserInputType.MouseButton1
+				or input.UserInputType == Enum.UserInputType.Touch;
+		end;
+		local function IsHoverInput(input)
+			return input.UserInputType == Enum.UserInputType.MouseMovement
+				or input.UserInputType == Enum.UserInputType.Touch;
+		end;
+
+		for _, El in next, Config.Elements do
+			local LabelFrame = Instance.new("TextButton");
+			LabelFrame.AutoButtonColor = false;
+			LabelFrame.BackgroundTransparency = 1;
+			LabelFrame.BorderSizePixel = 0;
+			LabelFrame.AutomaticSize = Enum.AutomaticSize.XY;
+			LabelFrame.Size = UDim2.fromOffset(0, 0);
+			LabelFrame.Text = "";
+			LabelFrame.ZIndex = LayerIndex + 17;
+			LabelFrame.Parent = Canvas;
+
+			local Stroke = Instance.new("UIStroke");
+			Stroke.Color = NeverLose.AccentColor or Color3.fromRGB(0, 162, 255);
+			Stroke.Transparency = 1;
+			Stroke.Thickness = 1;
+			Stroke.Parent = LabelFrame;
+
+			local TextLbl = Instance.new("TextLabel");
+			TextLbl.BackgroundTransparency = 1;
+			TextLbl.AutomaticSize = Enum.AutomaticSize.XY;
+			TextLbl.Size = UDim2.fromOffset(0, 0);
+			TextLbl.Text = El.Text or El.Idx;
+			TextLbl.TextSize = 11;
+			TextLbl.TextColor3 = Color3.fromRGB(235, 235, 245);
+			TextLbl.Font = Enum.Font.GothamMedium;
+			TextLbl.ZIndex = LayerIndex + 18;
+			TextLbl.Parent = LabelFrame;
+
+			local TextStroke = Instance.new("UIStroke");
+			TextStroke.Color = Color3.new(0, 0, 0);
+			TextStroke.Thickness = 1;
+			TextStroke.Transparency = 0.2;
+			TextStroke.Parent = TextLbl;
+
+			Preview.Labels[El.Idx] = { Frame = LabelFrame, Text = TextLbl, Stroke = Stroke };
+
+			local Dragging, Hovering = false, false;
+			local DragOffset = Vector2.zero;
+
+			local function UpdateStroke()
+				if Dragging then
+					Stroke.Transparency = 0;
+				elseif Hovering then
+					Stroke.Transparency = 0.4;
+				else
+					Stroke.Transparency = 1;
+				end;
+			end;
+
+			NeverLose:AddSignal(LabelFrame.MouseEnter:Connect(LPH_NO_VIRTUALIZE(function()
+				Hovering = true; UpdateStroke();
+			end)));
+			NeverLose:AddSignal(LabelFrame.MouseLeave:Connect(LPH_NO_VIRTUALIZE(function()
+				Hovering = false; UpdateStroke();
+			end)));
+
+			NeverLose:AddSignal(LabelFrame.InputBegan:Connect(LPH_NO_VIRTUALIZE(function(input)
+				if not IsClickInput(input) then return end;
+				Dragging = true;
+				local mp = UserInputService:GetMouseLocation();
+				local center = LabelFrame.AbsolutePosition + LabelFrame.AbsoluteSize / 2;
+				DragOffset = center - mp;
+				UpdateStroke();
+			end)));
+
+			NeverLose:AddSignal(UserInputService.InputEnded:Connect(LPH_NO_VIRTUALIZE(function(input)
+				if input.UserInputType == Enum.UserInputType.MouseButton1
+					or input.UserInputType == Enum.UserInputType.Touch then
+					if Dragging then Dragging = false; UpdateStroke() end;
+				end;
+			end)));
+
+			NeverLose:AddSignal(UserInputService.InputChanged:Connect(LPH_NO_VIRTUALIZE(function(input)
+				if not Dragging then return end;
+				if not IsHoverInput(input) then return end;
+				local mp = UserInputService:GetMouseLocation();
+				local center = mp + DragOffset;
+				local cAbs = Canvas.AbsolutePosition;
+				local lx = center.X - cAbs.X;
+				local ly = center.Y - cAbs.Y;
+				local bx, by, bw, bh = GetBoxRect();
+				local rx = (lx - bx) / bw;
+				local ry = (ly - by) / bh;
+				rx = math.clamp(rx, -2.5, 3.5);
+				ry = math.clamp(ry, -1.5, 2.5);
+				Preview.Value[El.Idx].X = rx;
+				Preview.Value[El.Idx].Y = ry;
+				PositionLabel(El.Idx);
+				Config.Callback(Preview.Value);
+				if Preview.Changed then pcall(Preview.Changed, Preview.Value) end;
+			end)));
+
+			NeverLose:AddSignal(LabelFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(LPH_NO_VIRTUALIZE(function()
+				PositionLabel(El.Idx);
+			end)));
+		end;
+
+		local function RefreshAll()
+			UpdateBoxLayout();
+			for _, El in next, Config.Elements do PositionLabel(El.Idx) end;
+		end;
+
+		UpdateBoxLayout();
+		NeverLose:AddSignal(Canvas:GetPropertyChangedSignal("AbsoluteSize"):Connect(LPH_NO_VIRTUALIZE(RefreshAll)));
+		task.defer(RefreshAll);
+
+		-1256, 216, -1241 Public API
+		function Preview:GetOffset(name)
+			local v = self.Value[name];
+			if not v then return 0.5, 0.5 end;
+			return v.X, v.Y;
+		end;
+		function Preview:GetPosition(name, boxX, boxY, boxW, boxH)
+			local rx, ry = self:GetOffset(name);
+			local refW = self.RefW or 95;
+			local refH = self.RefH or 115;
+			local outsideV = ry < 0 or ry > 1;
+			local px, py;
+			if rx < 0 then
+				px = boxX + rx * refW;
+			elseif rx > 1 then
+				px = boxX + boxW + (rx - 1) * refW;
+			elseif outsideV then
+				px = boxX + boxW * 0.5 + (rx - 0.5) * refW;
+			else
+				px = boxX + rx * boxW;
+			end;
+			if ry < 0 then
+				py = boxY + ry * refH;
+			elseif ry > 1 then
+				py = boxY + boxH + (ry - 1) * refH;
+			else
+				py = boxY + ry * boxH;
+			end;
+			return px, py;
+		end;
+		function Preview:SetValue(t)
+			if typeof(t) ~= "table" then return end;
+			for k, v in next, t do
+				if self.Value[k] and typeof(v) == "table" and tonumber(v.X) and tonumber(v.Y) then
+					self.Value[k].X = tonumber(v.X);
+					self.Value[k].Y = tonumber(v.Y);
+				end;
+			end;
+			RefreshAll();
+			Config.Callback(self.Value);
+			if Preview.Changed then pcall(Preview.Changed, self.Value) end;
+		end;
+		function Preview:GetValue() return self.Value end;
+		function Preview:Reset()
+			for k, v in next, self.Default do
+				self.Value[k].X = v.X;
+				self.Value[k].Y = v.Y;
+			end;
+			RefreshAll();
+			Config.Callback(self.Value);
+			if Preview.Changed then pcall(Preview.Changed, self.Value) end;
+		end;
+		function Preview:OnChanged(fn) self.Changed = fn end;
+		function Preview:SetVisible(v)
+			self.Visible = v;
+			PreviewFrame.Visible = v;
+		end;
+
+		-1256, 216, -1241 Expose internals so external code can recolor / restyle
+		Preview.Root             = PreviewFrame;
+		Preview.Holder           = PreviewFrame;
+		Preview.Canvas           = Canvas;
+		Preview.BoxFrame         = BoxFrame;
+		Preview.BoxStroke        = BoxStroke;
+		Preview.BoxGradient      = BoxGradient;
+		Preview.BoxOutlineFrame  = BoxOutlineFrame;
+		Preview.BoxOutlineStroke = BoxOutlineStroke;
+		Preview.BoxFillFrame     = BoxFillFrame;
+		Preview.BoxFillGradient  = BoxFillGradient;
+		Preview.Viewport         = CharViewport;
+
+		Preview.SetRender = LPH_NO_VIRTUALIZE(function(value)
+			if value then
+				NeverLose.PlayAnimate(Canvas , SlowyTween , {
+					BackgroundTransparency = 0.250
+				});
+				NeverLose.PlayAnimate(CanvasStroke , SlowyTween , {
+					Transparency = 0.65
+				});
+			else
+				NeverLose.PlayAnimate(Canvas , SlowyTween , {
+					BackgroundTransparency = 1
+				});
+				NeverLose.PlayAnimate(CanvasStroke , SlowyTween , {
+					Transparency = 1
+				});
+			end;
+		end);
+
+		Preview.SetRender(Signel:GetValue());
+		Signel:Connect(Preview.SetRender);
+
+		if Config.Flag then
+			NeverLose.Flags[Config.Flag] = Preview;
+		end;
+
+		return Preview;
 	end;
 
 	function idx:AddUserFrame(Name : string , Profile: string , Expires : string)
@@ -6347,7 +6984,7 @@ function NeverLose:CreateLogger()
 		LogFrame.Parent = Log
 		LogFrame.AnchorPoint = Vector2.new(0.5, 0)
 		LogFrame.BackgroundColor3 = Color3.fromRGB(20, 22, 27)
-		LogFrame.BackgroundTransparency =  1--0.075
+		LogFrame.BackgroundTransparency =  1-1256, 216, -12410.075
 		LogFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		LogFrame.BorderSizePixel = 0
 		LogFrame.ClipsDescendants = true
@@ -6358,7 +6995,7 @@ function NeverLose:CreateLogger()
 		UICorner.CornerRadius = UDim.new(0, 4)
 		UICorner.Parent = LogFrame
 
-		UIStroke.Transparency = 1--0.650
+		UIStroke.Transparency = 1-1256, 216, -12410.650
 		UIStroke.Color = Color3.fromRGB(45, 48, 58)
 		UIStroke.Parent = LogFrame
 
@@ -6375,7 +7012,7 @@ function NeverLose:CreateLogger()
 		LogContent.Text = Message
 		LogContent.TextColor3 = Color3.fromRGB(255, 255, 255)
 		LogContent.TextSize = 12.000
-		LogContent.TextTransparency = 1--0.250
+		LogContent.TextTransparency = 1-1256, 216, -12410.250
 		LogContent.TextXAlignment = Enum.TextXAlignment.Left
 
 		Line.Name = NeverLose.RandomString();
@@ -6383,7 +7020,7 @@ function NeverLose:CreateLogger()
 		Line.AnchorPoint = Vector2.new(0, 0.5)
 		Line.BackgroundColor3 = NeverLose.AccentColor
 		Line.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		Line.BackgroundTransparency = 1 --0
+		Line.BackgroundTransparency = 1 -1256, 216, -12410
 		Line.BorderSizePixel = 0
 		Line.Position = UDim2.new(0, -2, 0.5, 0)
 		Line.Size = UDim2.new(0, 5, 1, 0)
@@ -6405,7 +7042,7 @@ function NeverLose:CreateLogger()
 		Icon.Text = IconStr
 		Icon.TextColor3 = Color3.fromRGB(223, 223, 223)
 		Icon.TextSize = 13.000
-		Icon.TextTransparency = 1--0.250
+		Icon.TextTransparency = 1-1256, 216, -12410.250
 		Icon.TextWrapped = true
 
 		local size = TextService:GetTextSize(LogContent.Text,LogContent.TextSize,LogContent.Font,Vector2.new(math.huge,math.huge));
